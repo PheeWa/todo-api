@@ -1,0 +1,63 @@
+
+@MY_TOKEN = rc4bjlvpxuomiipd4ot
+@TODO_ID= 325167f1-2c79-4f2e-bdf8-e198fe99a1db
+
+### 1. Login to get a token
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username": "admin", "password": "admin123"}
+
+### 2. Get all todos (use token from login response)
+GET http://localhost:8080/todos
+Authorization: Bearer {{MY_TOKEN}}
+
+### 3. Create a new todo
+POST http://localhost:8080/todos
+Content-Type: application/json
+Authorization: Bearer {{MY_TOKEN}}
+
+{"title": "Learn authentication"}
+
+### 4. Get a specific todo
+GET http://localhost:8080/todos/1763369521603
+Authorization: Bearer {{MY_TOKEN}}
+
+### 5. Test without token (should return 401)
+GET http://localhost:8080/todos
+
+### 6. Test with invalid token (should return 401)
+GET http://localhost:8080/todos
+Authorization: Bearer invalid_token
+
+### 7. Update todo title (PATCH)
+PATCH http://localhost:8080/todos/{{TODO_ID}}
+Content-Type: application/json
+Authorization: Bearer {{MY_TOKEN}}
+
+{"title": "Updated title"}
+
+### 8. Update todo completion status (PATCH)
+PATCH http://localhost:8080/todos/{{TODO_ID}}
+Content-Type: application/json
+Authorization: Bearer {{MY_TOKEN}}
+
+{"isCompleted": true}
+
+### 9. Update both title and completion (PATCH)
+PATCH http://localhost:8080/todos/{{TODO_ID}}
+Content-Type: application/json
+Authorization: Bearer {{MY_TOKEN}}
+
+{"title": "Updated and completed", "isCompleted": true}
+
+### 10. Update non-existent todo - Should return 404
+PATCH http://localhost:8080/todos/nonexistent-id
+Content-Type: application/json
+Authorization: Bearer {{MY_TOKEN}}
+
+{"title": "This should fail"}
+
+### 11. Health endpoint 
+GET http://localhost:8080/health
+
