@@ -1,29 +1,37 @@
 import { describe, it, expect, beforeEach, afterEach } from "@jest/globals";
 import { fastify, type FastifyInstance } from "fastify";
+import sensible from "@fastify/sensible";
 import { authMiddleware } from "../../middleware/auth.js";
 import { errorHandler } from "../../middleware/errorHandler.js";
 import { authRoutes } from "../../routes/auth.js";
 import { todoRoutes } from "../../routes/todo.js";
 
 describe("API Integration Tests", () => {
-  let app: FastifyInstance;
+  let server: FastifyInstance;
   let adminToken: string;
   let userToken: string;
 
   beforeEach(async () => {
     // create a Fastify instance
-    app = fastify();
+    server = fastify();
 
-    // Register middleware
-    app.addHook("preHandler", authMiddleware);
-    app.setErrorHandler(errorHandler);
+    // Register sensible plugin
+    await server.register(sensible);
 
-    // Register routes
-    await app.register(authRoutes);
-    await app.register(todoRoutes);
+    server.setErrorHandler(errorHandler);
+
+    // Public routes (no auth)
+    await server.register(async function (publicScope) {
+      await publicScope.register(authRoutes);
+    });
+    // Protected routes (with auth)
+    await server.register(async function (protectedScope) {
+      protectedScope.addHook("preHandler", authMiddleware);
+      await protectedScope.register(todoRoutes);
+    });
 
     // Get tokens to ready to use
-    const adminLogin = await app.inject({
+    const adminLogin = await server.inject({
       method: "POST",
       url: "/login",
       payload: {
@@ -33,7 +41,7 @@ describe("API Integration Tests", () => {
     });
     adminToken = JSON.parse(adminLogin.body).token;
 
-    const userLogin = await app.inject({
+    const userLogin = await server.inject({
       method: "POST",
       url: "/login",
       payload: {
@@ -45,12 +53,12 @@ describe("API Integration Tests", () => {
   });
 
   afterEach(async () => {
-    await app.close();
+    await server.close();
   });
 
   describe("POST /login", () => {
     it("should login with valid credentials", async () => {
-      const res = await app.inject({
+      const res = await server.inject({
         method: "POST",
         url: "/login",
         payload: {
@@ -59,13 +67,18 @@ describe("API Integration Tests", () => {
         },
       });
 
+      // Add this to see the error:
+      if (res.statusCode === 500) {
+        console.log("ERROR:", res.body);
+      }
+
       expect(res.statusCode).toBe(200);
       const body = JSON.parse(res.body);
       expect(body.token).toBeDefined();
     });
 
     it("should reject invalid credentials", async () => {
-      const res = await app.inject({
+      const res = await server.inject({
         method: "POST",
         url: "/login",
         payload: {
@@ -79,7 +92,7 @@ describe("API Integration Tests", () => {
 
   describe("GET /todos", () => {
     it("should return todos with valid token", async () => {
-      const res = await app.inject({
+      const res = await server.inject({
         method: "GET",
         url: "/todos",
         headers: {
@@ -92,7 +105,7 @@ describe("API Integration Tests", () => {
     });
 
     it("should reject request without token", async () => {
-      const res = await app.inject({
+      const res = await server.inject({
         method: "GET",
         url: "/todos",
       });
