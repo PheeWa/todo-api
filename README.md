@@ -85,6 +85,27 @@ Returns the health status of the API.
 
 ### Authentication
 
+#### Register
+
+```bash
+POST /register
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "password": "admin123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNoYXJsaWUxIiwiaWF0IjoxNzY0NDkyNDM5LCJleHAiOjE3NjUwOTcyMzl9.dc0ag1KSt5jycYKk2gSnT039dZQeWQjlJE_JSu-_1e4",
+  "username": "alice"
+}
+```
+
 #### Login
 
 ```bash
@@ -194,13 +215,27 @@ This project uses Husky for git hooks:
 ```
 todo-api/
 ├── __test__/           # Test files
+├── .github/            # GitHub Actions/workflows configuration
+├── .husky/             # Git hook configuration (e.g., pre-commit hooks)
+├── dist/               # Compiled JavaScript output directory
 ├── middleware/         # Custom middleware (auth, error handling)
-├── routes/            # API route handlers
-├── schemas/           # Request/response schemas
-├── services/          # Business logic
-├── types/             # TypeScript type definitions
-├── index.ts           # Application entry point
-└── Dockerfile         # Docker configuration
+├── node_modules/       # Project dependencies
+├── routes/             # Fastify API route handlers
+├── schemas/            # Request/response schemas
+├── services/           # Business logic and database interactions
+├── types/              # TypeScript type definitions
+├── .dockerignore       # Files to exclude when building the Docker image
+├── .env                # Environment variables (e.g., JWT_SECRET, Database connection)
+├── .gitignore          # Files and directories to exclude from Git tracking
+├── docker-compose.yml  # Docker Compose configuration for multi-container setup
+├── Dockerfile          # Docker configuration to build the application image
+├── index.ts            # Application entry point (where the Fastify server is initialized)
+├── jest.config.js      # Configuration file for Jest testing framework
+├── package-lock.json   # Exact dependency versions locked by npm
+├── package.json        # Project metadata, scripts, and dependency list
+├── README.md           # Project documentation
+├── test.http           # File for running API tests/requests
+└── tsconfig.json       # TypeScript compiler configuration
 ```
 
 ## Error Responses
@@ -210,11 +245,11 @@ The API uses consistent error responses:
 - `401 Unauthorized`: Missing or invalid authentication token
 - `404 Not Found`: Resource not found
 - `500 Internal Server Error`: Unexpected server error
+- `409 Conflict`: Duplicate resource
 
 ## Future Enhancements
 
-- Complete test coverage for all API endpoints (POST, GET/:id, PATCH, DELETE)
-- User registration endpoint
+- Complete test coverage for all API endpoints ('POST /todos', 'GET /todos/:id', 'PATCH /todos/:id','DELETE /todos/:id' and 'POST /register')
 - Password reset functionality
 - Persistent data storage (database integration)
 - Request rate limiting

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import fastify from "fastify";
 import { authMiddleware } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -15,6 +16,14 @@ declare module "@fastify/jwt" {
   }
 }
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error(
+    "JWT_SECRET environment variable is not set. Please check your .env file."
+  );
+}
+
 const server = fastify({
   logger: true,
 });
@@ -22,8 +31,10 @@ const server = fastify({
 // Register plugins
 await server.register(sensible);
 await server.register(jwt, {
-  // for dev and demo only
-  secret: "Thisisoursecretkeyfordemoanddevonly",
+  secret: JWT_SECRET,
+  sign: {
+    expiresIn: "7d",
+  },
 });
 
 // Global error handler

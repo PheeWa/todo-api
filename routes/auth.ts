@@ -1,9 +1,18 @@
 import { type FastifyInstance } from "fastify";
-import { findUser } from "../services/auth.js";
+import { findUser, registerUser } from "../services/auth.js";
+import {
+  LoginSchema,
+  RegisterSchema,
+  type LoginBody,
+  type RegisterBody,
+} from "../schemas/auth.js";
 
 export async function authRoutes(server: FastifyInstance) {
-  server.post<{ Body: { username: string; password: string } }>(
+  server.post<{ Body: LoginBody }>(
     "/login",
+    {
+      schema: { body: LoginSchema },
+    },
     async (request, reply) => {
       const { username, password } = request.body;
       const user = await findUser(username, password);
@@ -14,6 +23,26 @@ export async function authRoutes(server: FastifyInstance) {
 
       const token = server.jwt.sign({ username });
       return reply.send({ token });
+    }
+  );
+
+  server.post<{ Body: RegisterBody }>(
+    "/register",
+    {
+      schema: { body: RegisterSchema },
+    },
+    async (request, reply) => {
+      const { username, password } = request.body;
+      const newUser = await registerUser(username, password);
+
+      if (!newUser) {
+        return reply.conflict("Username already exists");
+      }
+
+      // auto login after register
+      const token = server.jwt.sign({ username: newUser.username });
+
+      return reply.code(201).send({ token });
     }
   );
 }

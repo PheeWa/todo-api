@@ -17,11 +17,43 @@ const users: User[] = [
   },
 ];
 
+// Utility function to hash passwords for user registration and password updates
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return bcrypt.hash(password, saltRounds);
+}
+
+export async function registerUser(
+  username: string,
+  password: string
+): Promise<User | undefined> {
+  const foundUser = users.find(
+    (user) => user.username.toLowerCase() === username.toLowerCase()
+  );
+
+  if (foundUser) {
+    return undefined;
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  const newUser: User = {
+    username,
+    password: hashedPassword,
+  };
+
+  users.push(newUser);
+
+  return newUser;
+}
+
 export async function findUser(
   username: string,
   password: string
 ): Promise<User | undefined> {
-  const user = users.find((user) => user.username === username);
+  const user = users.find(
+    (user) => user.username.toLowerCase() === username.toLowerCase()
+  );
 
   if (!user) {
     return undefined;
@@ -34,12 +66,4 @@ export async function findUser(
   }
 
   return user;
-}
-
-// Utility function to hash passwords for user registration and password updates
-// Currently used for generating test user password hashes
-// TODO: Set up User registration (hashing passwords before storing) and Password reset/change functionality
-export async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 10;
-  return bcrypt.hash(password, saltRounds);
 }

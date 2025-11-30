@@ -118,5 +118,5 @@ describe("API Integration Tests", () => {
     });
   });
 
-  //   TODO: write test for:'POST /todos', 'GET /todos/:id', 'PATCH /todos/:id','DELETE /todos/:id' if time allows
+  //   TODO: write test for:'POST /todos', 'GET /todos/:id', 'PATCH /todos/:id','DELETE /todos/:id' and 'POST /register' if time allows
 });
