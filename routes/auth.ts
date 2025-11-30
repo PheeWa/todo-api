@@ -12,7 +12,7 @@ export async function authRoutes(server: FastifyInstance) {
         return reply.unauthorized("Invalid credentials");
       }
 
-      const token = createToken(username, user.role);
+      const token = createToken(username);
       return reply.send({ token });
     }
   );

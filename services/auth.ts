@@ -1,23 +1,19 @@
 import bcrypt from "bcrypt";
-import type { UserRole } from "../types/index.js";
 
 interface User {
   username: string;
   password: string;
-  role: UserRole;
 }
 
 // a hashPasswords function previously defined to generate the hash for passwords for both admin and user now used here
 const users: User[] = [
   {
-    username: "admin",
+    username: "alice",
     password: "$2b$10$KQC/rQL.EGE/adX1Gnb8ceJ2Q79NXpuhjKfB3S3HG0udwl4vQKU2q",
-    role: "admin",
   },
   {
-    username: "user",
+    username: "bob",
     password: "$2b$10$YNP7HfQn.cjJsH5ETlGMPuTnvJIbewNFfKyA2C/xXck.PjKX3xJ8y",
-    role: "user",
   },
 ];
 
@@ -40,7 +36,7 @@ export async function findUser(
   return user;
 }
 
-const tokens = new Map<string, { username: string; role: UserRole }>();
+const tokens = new Map<string, { username: string }>();
 
 // Generate a token
 function generateToken() {
@@ -48,16 +44,14 @@ function generateToken() {
 }
 
 // Create and store a token for user
-export function createToken(username: string, role: UserRole) {
+export function createToken(username: string) {
   const token = generateToken();
-  tokens.set(token, { username, role });
+  tokens.set(token, { username });
   return token;
 }
 
 // Validate a token and return the username if valid
-export function validateToken(
-  token: string
-): { username: string; role: UserRole } | undefined {
+export function validateToken(token: string): { username: string } | undefined {
   return tokens.get(token);
 }
 

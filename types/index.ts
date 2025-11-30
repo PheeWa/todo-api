@@ -1,6 +1,10 @@
-export type UserRole = "admin" | "user";
-
-export interface UserData {
+export interface User {
   username: string;
-  role: UserRole;
+}
+
+export interface Todo {
+  id: string;
+  title: string;
+  isCompleted: boolean;
+  userId: string;
 }

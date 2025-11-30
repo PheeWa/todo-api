@@ -1,53 +1,76 @@
-interface Todo {
-  id: string;
-  title: string;
-  isCompleted: boolean;
-}
+import type { Todo } from "../types/index.js";
 
 const todos: Todo[] = [];
-export function getAllTodos() {
-  return todos;
+
+function checkOwnership(todo: Todo, userId: string): boolean {
+  return todo.userId === userId;
 }
 
-export function addTodo(title: string): Todo {
+export function getAllTodos(userId: string): Todo[] {
+  return todos.filter((todo) => todo.userId === userId);
+}
+
+export function addTodo(title: string, userId: string): Todo {
   const id = crypto.randomUUID();
   const newTodo: Todo = {
     id,
     title,
     isCompleted: false,
+    userId,
   };
   todos.push(newTodo);
   return newTodo;
 }
 
-export function getTodoById(id: string): Todo | null {
-  return todos.find((todo) => todo.id === id) ?? null;
+export function getTodoById(id: string, userId: string): Todo | null {
+  const foundTodo = todos.find((todo) => todo.id === id);
+  if (!foundTodo) {
+    return null;
+  }
+
+  if (!checkOwnership(foundTodo, userId)) {
+    return null;
+  }
+
+  return foundTodo;
 }
 
-export function deleteTodoById(id: string): boolean {
-  const index = todos.findIndex((todo) => todo.id === id);
-  if (index === -1) {
+export function deleteTodoById(id: string, userId: string): boolean {
+  const foundTodo = todos.find((todo) => todo.id === id);
+
+  if (!foundTodo) {
     return false;
   }
-  todos.splice(index, 1);
+
+  if (!checkOwnership(foundTodo, userId)) {
+    return false;
+  }
+
+  const indexOfFoundTodo = todos.indexOf(foundTodo);
+  todos.splice(indexOfFoundTodo, 1);
   return true;
 }
 
 export function updateTodo(
   id: string,
+  userId: string,
   updates: { title?: string; isCompleted?: boolean }
 ): Todo | null {
-  const todo = todos.find((todo) => todo.id === id);
-  if (!todo) {
+  const foundTodo = todos.find((todo) => todo.id === id);
+  if (!foundTodo) {
+    return null;
+  }
+
+  if (!checkOwnership(foundTodo, userId)) {
     return null;
   }
 
   if (updates.title !== undefined) {
-    todo.title = updates.title;
+    foundTodo.title = updates.title;
   }
   if (updates.isCompleted !== undefined) {
-    todo.isCompleted = updates.isCompleted;
+    foundTodo.isCompleted = updates.isCompleted;
   }
 
-  return todo;
+  return foundTodo;
 }

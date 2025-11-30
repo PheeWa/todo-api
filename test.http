@@ -1,63 +1,147 @@
+# Variables for testing
+@ALICE_TOKEN = e5a8f909-8931-4760-87ae-e5c275a302ee
+@BOB_TOKEN = e7660d6b-dec2-4bf4-9d7e-408efab9fad7
+@ALICE_TODO_ID = bdde2d1b-078d-4282-ad8f-f2d319d44557
+@BOB_TODO_ID = adbd01ac-58a9-45a6-ba65-3b14efca8afe
 
-@MY_TOKEN = rc4bjlvpxuomiipd4ot
-@TODO_ID= 325167f1-2c79-4f2e-bdf8-e198fe99a1db
-
-### 1. Login to get a token
+### 1. Login as Alice
 POST http://localhost:8080/login
 Content-Type: application/json
 
-{"username": "admin", "password": "admin123"}
+{"username": "alice", "password": "admin123"}
 
-### 2. Get all todos (use token from login response)
-GET http://localhost:8080/todos
-Authorization: Bearer {{MY_TOKEN}}
+### 2. Login as Bob
+POST http://localhost:8080/login
+Content-Type: application/json
 
-### 3. Create a new todo
+{"username": "bob", "password": "user123"}
+
+### 3. Login with invalid credentials (should return 401)
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{"username": "alice", "password": "wrongpassword"}
+
+### 4. Alice - Create a new todo
 POST http://localhost:8080/todos
 Content-Type: application/json
-Authorization: Bearer {{MY_TOKEN}}
+Authorization: Bearer {{ALICE_TOKEN}}
 
-{"title": "Learn authentication"}
+{"title": "Alice's todo - Buy groceries"}
 
-### 4. Get a specific todo
-GET http://localhost:8080/todos/1763369521603
-Authorization: Bearer {{MY_TOKEN}}
-
-### 5. Test without token (should return 401)
+### 5. Alice - Get all todos
 GET http://localhost:8080/todos
+Authorization: Bearer {{ALICE_TOKEN}}
 
-### 6. Test with invalid token (should return 401)
-GET http://localhost:8080/todos
-Authorization: Bearer invalid_token
-
-### 7. Update todo title (PATCH)
-PATCH http://localhost:8080/todos/{{TODO_ID}}
+### 6. Alice - Create another todo
+POST http://localhost:8080/todos
 Content-Type: application/json
-Authorization: Bearer {{MY_TOKEN}}
+Authorization: Bearer {{ALICE_TOKEN}}
 
-{"title": "Updated title"}
+{"title": "Alice's todo - Write documentation"}
 
-### 8. Update todo completion status (PATCH)
-PATCH http://localhost:8080/todos/{{TODO_ID}}
+### 7. Alice - Get specific todo by ID
+GET http://localhost:8080/todos/{{ALICE_TODO_ID}}
+Authorization: Bearer {{ALICE_TOKEN}}
+
+### 8. Alice - Update todo title
+PATCH http://localhost:8080/todos/{{ALICE_TODO_ID}}
 Content-Type: application/json
-Authorization: Bearer {{MY_TOKEN}}
+Authorization: Bearer {{ALICE_TOKEN}}
+
+{"title": "Alice's updated todo"}
+
+### 9. Alice - Mark todo as completed
+PATCH http://localhost:8080/todos/{{ALICE_TODO_ID}}
+Content-Type: application/json
+Authorization: Bearer {{ALICE_TOKEN}}
 
 {"isCompleted": true}
 
-### 9. Update both title and completion (PATCH)
-PATCH http://localhost:8080/todos/{{TODO_ID}}
-Content-Type: application/json
-Authorization: Bearer {{MY_TOKEN}}
+### 11. Alice - Delete own todo
+DELETE http://localhost:8080/todos/{{ALICE_TODO_ID}}
+Authorization: Bearer {{ALICE_TOKEN}}
 
-{"title": "Updated and completed", "isCompleted": true}
+### ========== BOB'S TESTS ==========
 
-### 10. Update non-existent todo - Should return 404
-PATCH http://localhost:8080/todos/nonexistent-id
+### 12. Bob - Get all todos (should only see own todos)
+GET http://localhost:8080/todos
+Authorization: Bearer {{BOB_TOKEN}}
+
+### 13. Bob - Create a new todo
+POST http://localhost:8080/todos
 Content-Type: application/json
-Authorization: Bearer {{MY_TOKEN}}
+Authorization: Bearer {{BOB_TOKEN}}
+
+{"title": "Bob's todo - Learn TypeScript"}
+
+### 14. Bob - Get specific todo by ID
+GET http://localhost:8080/todos/{{BOB_TODO_ID}}
+Authorization: Bearer {{BOB_TOKEN}}
+
+### 15. Bob - Update own todo
+PATCH http://localhost:8080/todos/{{BOB_TODO_ID}}
+Content-Type: application/json
+Authorization: Bearer {{BOB_TOKEN}}
+
+{"title": "Bob's updated todo"}
+
+### 16. Bob - Delete own todo
+DELETE http://localhost:8080/todos/{{BOB_TODO_ID}}
+Authorization: Bearer {{BOB_TOKEN}}
+
+### ========== OWNER-BASED AUTHORIZATION TESTS ==========
+
+### 17. Bob tries to access Alice's todo (should return 404)
+GET http://localhost:8080/todos/{{ALICE_TODO_ID}}
+Authorization: Bearer {{BOB_TOKEN}}
+
+### 18. Bob tries to update Alice's todo (should return 404)
+PATCH http://localhost:8080/todos/{{ALICE_TODO_ID}}
+Content-Type: application/json
+Authorization: Bearer {{BOB_TOKEN}}
+
+{"title": "Bob trying to update Alice's todo"}
+
+### 19. Bob tries to delete Alice's todo (should return 404)
+DELETE http://localhost:8080/todos/{{ALICE_TODO_ID}}
+Authorization: Bearer {{BOB_TOKEN}}
+
+### 20. Alice tries to access Bob's todo (should return 404)
+GET http://localhost:8080/todos/{{BOB_TODO_ID}}
+Authorization: Bearer {{ALICE_TOKEN}}
+
+### ========== ERROR TESTS ==========
+
+### 21. Get todos without token (should return 401)
+GET http://localhost:8080/todos
+
+### 22. Get todos with invalid token (should return 401)
+GET http://localhost:8080/todos
+Authorization: Bearer invalid_token_123
+
+### 23. Create todo without token (should return 401)
+POST http://localhost:8080/todos
+Content-Type: application/json
 
 {"title": "This should fail"}
 
-### 11. Health endpoint 
-GET http://localhost:8080/health
+### 24. Get non-existent todo (should return 404)
+GET http://localhost:8080/todos/non-existent-uuid-12345
+Authorization: Bearer {{ALICE_TOKEN}}
 
+### 25. Update non-existent todo (should return 404)
+PATCH http://localhost:8080/todos/non-existent-uuid-12345
+Content-Type: application/json
+Authorization: Bearer {{ALICE_TOKEN}}
+
+{"title": "This should fail"}
+
+### 26. Delete non-existent todo (should return 404)
+DELETE http://localhost:8080/todos/non-existent-uuid-12345
+Authorization: Bearer {{ALICE_TOKEN}}
+
+### ========== HEALTH CHECK ==========
+
+### 27. Health endpoint
+GET http://localhost:8080/health

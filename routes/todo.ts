@@ -12,11 +12,10 @@ import {
   UpdateTodoSchema,
   type UpdateTodoBody,
 } from "../schemas/todo.js";
-import { requiredRole } from "../middleware/authorize.js";
 
 export async function todoRoutes(server: FastifyInstance) {
-  server.get("/todos", async (_request, reply) => {
-    const todos = getAllTodos();
+  server.get("/todos", async (request, reply) => {
+    const todos = getAllTodos(request.user.username);
     return reply.send(todos);
   });
 
@@ -26,11 +25,11 @@ export async function todoRoutes(server: FastifyInstance) {
       schema: {
         body: CreateTodoSchema,
       },
-      preHandler: requiredRole("admin", "user"),
     },
     async (request: FastifyRequest<{ Body: CreateTodoBody }>, reply) => {
       const { title } = request.body;
-      const newTodo = addTodo(title);
+      const userId = request.user.username;
+      const newTodo = addTodo(title, userId);
 
       return reply.code(201).send(newTodo);
     }
@@ -40,9 +39,9 @@ export async function todoRoutes(server: FastifyInstance) {
     "/todos/:id",
     async (request, reply) => {
       const { id } = request.params;
-      const todo = getTodoById(id);
+      const userId = request.user.username;
+      const todo = getTodoById(id, userId);
       if (!todo) {
-        // return reply.code(404).send({ error: "Todo not found" });
         return reply.notFound("Todo not found");
       }
 
@@ -56,16 +55,16 @@ export async function todoRoutes(server: FastifyInstance) {
       schema: {
         body: UpdateTodoSchema,
       },
-      preHandler: requiredRole("admin", "user"),
     },
     async (request, reply) => {
       const { id } = request.params;
       const updates = request.body;
+      const userId = request.user.username;
 
-      const updatedTodo = updateTodo(id, updates);
+      const updatedTodo = updateTodo(id, userId, updates);
 
       if (!updatedTodo) {
-        return reply.code(404).send({ error: "Todo not found" });
+        return reply.notFound("Todo not found");
       }
 
       return reply.send(updatedTodo);
@@ -74,15 +73,13 @@ export async function todoRoutes(server: FastifyInstance) {
 
   server.delete<{ Params: { id: string } }>(
     "/todos/:id",
-    {
-      preHandler: requiredRole("admin"),
-    },
     async (request, reply) => {
       const { id } = request.params;
-      const deleted = deleteTodoById(id);
+      const userId = request.user.username;
+      const deleted = deleteTodoById(id, userId);
 
       if (!deleted) {
-        reply.code(404).send({ error: "Todo not found" });
+        return reply.notFound("Todo not found");
       }
 
       return reply.code(204).send();

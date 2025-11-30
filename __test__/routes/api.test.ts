@@ -8,8 +8,8 @@ import { todoRoutes } from "../../routes/todo.js";
 
 describe("API Integration Tests", () => {
   let server: FastifyInstance;
-  let adminToken: string;
-  let userToken: string;
+  let aliceToken: string;
+  let bobToken: string;
 
   beforeEach(async () => {
     // create a Fastify instance
@@ -31,15 +31,15 @@ describe("API Integration Tests", () => {
     });
 
     // Get tokens to ready to use
-    const adminLogin = await server.inject({
+    const aliceLogin = await server.inject({
       method: "POST",
       url: "/login",
       payload: {
-        username: "admin",
+        username: "alice",
         password: "admin123",
       },
     });
-    adminToken = JSON.parse(adminLogin.body).token;
+    aliceToken = JSON.parse(aliceLogin.body).token;
 
     const userLogin = await server.inject({
       method: "POST",
@@ -49,7 +49,7 @@ describe("API Integration Tests", () => {
         password: "user123",
       },
     });
-    userToken = JSON.parse(userLogin.body).token;
+    bobToken = JSON.parse(userLogin.body).token;
   });
 
   afterEach(async () => {
@@ -62,7 +62,7 @@ describe("API Integration Tests", () => {
         method: "POST",
         url: "/login",
         payload: {
-          username: "admin",
+          username: "alice",
           password: "admin123",
         },
       });
@@ -82,7 +82,7 @@ describe("API Integration Tests", () => {
         method: "POST",
         url: "/login",
         payload: {
-          username: "admin",
+          username: "alice",
           password: "wrongpassword",
         },
       });
@@ -96,7 +96,7 @@ describe("API Integration Tests", () => {
         method: "GET",
         url: "/todos",
         headers: {
-          authorization: `Bearer ${adminToken}`,
+          authorization: `Bearer ${aliceToken}`,
         },
       });
       expect(res.statusCode).toBe(200);

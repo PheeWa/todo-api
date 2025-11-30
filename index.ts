@@ -3,13 +3,13 @@ import { authMiddleware } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { authRoutes } from "./routes/auth.js";
 import { todoRoutes } from "./routes/todo.js";
-import type { UserData } from "./types/index.js";
+import type { User } from "./types/index.js";
 import { healthRoutes } from "./routes/health.js";
 import sensible from "@fastify/sensible";
 
 declare module "fastify" {
   interface FastifyRequest {
-    user?: UserData;
+    user: User;
   }
 }
 
