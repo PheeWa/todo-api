@@ -1,5 +1,5 @@
 import { type FastifyInstance } from "fastify";
-import { createToken, findUser } from "../services/auth.js";
+import { findUser } from "../services/auth.js";
 
 export async function authRoutes(server: FastifyInstance) {
   server.post<{ Body: { username: string; password: string } }>(
@@ -12,7 +12,7 @@ export async function authRoutes(server: FastifyInstance) {
         return reply.unauthorized("Invalid credentials");
       }
 
-      const token = createToken(username);
+      const token = server.jwt.sign({ username });
       return reply.send({ token });
     }
   );

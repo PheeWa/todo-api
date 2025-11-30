@@ -6,9 +6,11 @@ import { todoRoutes } from "./routes/todo.js";
 import type { User } from "./types/index.js";
 import { healthRoutes } from "./routes/health.js";
 import sensible from "@fastify/sensible";
+import jwt from "@fastify/jwt";
 
-declare module "fastify" {
-  interface FastifyRequest {
+declare module "@fastify/jwt" {
+  interface FastifyJWT {
+    payload: { username: string };
     user: User;
   }
 }
@@ -17,8 +19,12 @@ const server = fastify({
   logger: true,
 });
 
-// Register plugin
+// Register plugins
 await server.register(sensible);
+await server.register(jwt, {
+  // for dev and demo only
+  secret: "Thisisoursecretkeyfordemoanddevonly",
+});
 
 // Global error handler
 server.setErrorHandler(errorHandler);

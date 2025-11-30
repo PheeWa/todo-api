@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { createToken, findUser, validateToken } from "../../services/auth.js";
+import { findUser } from "../../services/auth.js";
 
 describe("Authentication Service", () => {
   describe("finderUser", () => {
@@ -30,27 +30,5 @@ describe("Authentication Service", () => {
 
       expect(user).toBeUndefined();
     });
-  });
-});
-
-describe("Token Management", () => {
-  it("should create and validate a token", () => {
-    const username = "alice";
-
-    const token = createToken(username);
-    const userData = validateToken(token);
-
-    expect(token).toBeDefined();
-    expect(typeof token).toBe("string");
-    expect(userData).toBeDefined();
-    expect(userData?.username).toBe(username);
-  });
-
-  it("should return undefined for invalid token", () => {
-    const invalidToken = "invalid_token_123";
-
-    const userData = validateToken(invalidToken);
-
-    expect(userData).toBeUndefined();
   });
 });

@@ -36,25 +36,6 @@ export async function findUser(
   return user;
 }
 
-const tokens = new Map<string, { username: string }>();
-
-// Generate a token
-function generateToken() {
-  return crypto.randomUUID();
-}
-
-// Create and store a token for user
-export function createToken(username: string) {
-  const token = generateToken();
-  tokens.set(token, { username });
-  return token;
-}
-
-// Validate a token and return the username if valid
-export function validateToken(token: string): { username: string } | undefined {
-  return tokens.get(token);
-}
-
 // Utility function to hash passwords for user registration and password updates
 // Currently used for generating test user password hashes
 // TODO: Set up User registration (hashing passwords before storing) and Password reset/change functionality

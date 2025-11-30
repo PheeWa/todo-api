@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "@jest/globals";
 import { fastify, type FastifyInstance } from "fastify";
 import sensible from "@fastify/sensible";
+import jwt from "@fastify/jwt";
 import { authMiddleware } from "../../middleware/auth.js";
 import { errorHandler } from "../../middleware/errorHandler.js";
 import { authRoutes } from "../../routes/auth.js";
@@ -15,8 +16,11 @@ describe("API Integration Tests", () => {
     // create a Fastify instance
     server = fastify();
 
-    // Register sensible plugin
+    // Register plugins
     await server.register(sensible);
+    await server.register(jwt, {
+      secret: "Thisisoursecretkeyfordemoanddevonly",
+    });
 
     server.setErrorHandler(errorHandler);
 
@@ -45,7 +49,7 @@ describe("API Integration Tests", () => {
       method: "POST",
       url: "/login",
       payload: {
-        username: "user",
+        username: "bob",
         password: "user123",
       },
     });
