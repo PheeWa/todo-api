@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
 
-interface User {
+interface UserData {
   username: string;
   password: string;
 }
 
 // a hashPasswords function previously defined to generate the hash for passwords for both admin and user now used here
-const users: User[] = [
+const users: UserData[] = [
   {
     username: "alice",
     password: "$2b$10$KQC/rQL.EGE/adX1Gnb8ceJ2Q79NXpuhjKfB3S3HG0udwl4vQKU2q",
@@ -26,7 +26,7 @@ export async function hashPassword(password: string): Promise<string> {
 export async function registerUser(
   username: string,
   password: string
-): Promise<User | undefined> {
+): Promise<UserData | undefined> {
   const foundUser = users.find(
     (user) => user.username.toLowerCase() === username.toLowerCase()
   );
@@ -37,7 +37,7 @@ export async function registerUser(
 
   const hashedPassword = await hashPassword(password);
 
-  const newUser: User = {
+  const newUser: UserData = {
     username,
     password: hashedPassword,
   };
@@ -50,7 +50,7 @@ export async function registerUser(
 export async function findUser(
   username: string,
   password: string
-): Promise<User | undefined> {
+): Promise<UserData | undefined> {
   const user = users.find(
     (user) => user.username.toLowerCase() === username.toLowerCase()
   );

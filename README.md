@@ -193,6 +193,20 @@ This API uses owner-based authorization:
 - Each todo is associated with the user who created it (via `userId`)
 - Cross-user access is prevented at the service layer through ownership checks
 
+## Architecture
+
+The following diagram illustrates the layered architecture of the Todo API:
+
+![Architecture Diagram](doc/architecture-diagram.png)
+
+The application follows a layered architecture pattern:
+
+- **Entry Point** (`index.ts`): Initializes the Fastify server with configuration, JWT, and global error handling
+- **Routes Layer**: Handles HTTP requests (public auth routes, health checks, and protected todo routes)
+- **Service Layer**: Contains business logic for authentication and todo management
+- **Schema Layer**: Defines request/response validation schemas using TypeBox
+- **Data Layer**: In-memory storage for users and todos
+
 ## Testing
 
 ```bash
@@ -217,7 +231,9 @@ todo-api/
 ├── __test__/           # Test files
 ├── .github/            # GitHub Actions/workflows configuration
 ├── .husky/             # Git hook configuration (e.g., pre-commit hooks)
+├── config/             # Configuration files (environment variables, etc.)
 ├── dist/               # Compiled JavaScript output directory
+├── doc/                # Documentation and diagrams
 ├── middleware/         # Custom middleware (auth, error handling)
 ├── node_modules/       # Project dependencies
 ├── routes/             # Fastify API route handlers

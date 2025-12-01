@@ -8,6 +8,7 @@ import type { User } from "./types/index.js";
 import { healthRoutes } from "./routes/health.js";
 import sensible from "@fastify/sensible";
 import jwt from "@fastify/jwt";
+import { config } from "./config/env.js";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
@@ -16,22 +17,15 @@ declare module "@fastify/jwt" {
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error(
-    "JWT_SECRET environment variable is not set. Please check your .env file."
-  );
-}
-
 const server = fastify({
+  // For development: logs all requests. For production, configure proper logging with redaction of sensitive data (e.g., tokens, passwords)
   logger: true,
 });
 
 // Register plugins
 await server.register(sensible);
 await server.register(jwt, {
-  secret: JWT_SECRET,
+  secret: config.jwtSecret,
   sign: {
     expiresIn: "7d",
   },
@@ -53,7 +47,7 @@ server.register(async function (protectedScope) {
   protectedScope.register(todoRoutes);
 });
 
-server.listen({ port: 8080, host: "0.0.0.0" }, (err, address) => {
+server.listen({ port: config.port, host: config.host }, (err, address) => {
   if (err) {
     process.exit(1);
   }
