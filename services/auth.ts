@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 
 interface UserData {
+  userId: string;
   username: string;
   password: string;
 }
@@ -8,10 +9,12 @@ interface UserData {
 // a hashPasswords function previously defined to generate the hash for passwords for both admin and user now used here
 const users: UserData[] = [
   {
+    userId: "550e8400-e29b-41d4-a716-446655440001",
     username: "alice",
     password: "$2b$10$KQC/rQL.EGE/adX1Gnb8ceJ2Q79NXpuhjKfB3S3HG0udwl4vQKU2q",
   },
   {
+    userId: "550e8400-e29b-41d4-a716-446655440002",
     username: "bob",
     password: "$2b$10$YNP7HfQn.cjJsH5ETlGMPuTnvJIbewNFfKyA2C/xXck.PjKX3xJ8y",
   },
@@ -38,6 +41,7 @@ export async function registerUser(
   const hashedPassword = await hashPassword(password);
 
   const newUser: UserData = {
+    userId: crypto.randomUUID(),
     username,
     password: hashedPassword,
   };
@@ -47,7 +51,7 @@ export async function registerUser(
   return newUser;
 }
 
-export async function findUser(
+export async function authenticateUser(
   username: string,
   password: string
 ): Promise<UserData | undefined> {

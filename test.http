@@ -1,5 +1,5 @@
 # Variables for testing
-@ALICE_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiaWF0IjoxNzY0NDg1NDg2fQ.sv8OYCcxKr0Qx75FKz0Ci5G0992gkJnKPCTYKNFc_J4
+@ALICE_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDEiLCJ1c2VybmFtZSI6ImFsaWNlIiwiaWF0IjoxNzY0NzQ4MzA1LCJleHAiOjE3NjUzNTMxMDV9.PmoiLicDKdEFP0K6HDzx7e89ChIPyQXShEknAvkToGs
 @BOB_TOKEN = e7660d6b-dec2-4bf4-9d7e-408efab9fad7
 @ALICE_TODO_ID = bdde2d1b-078d-4282-ad8f-f2d319d44557
 @BOB_TODO_ID = adbd01ac-58a9-45a6-ba65-3b14efca8afe
@@ -66,7 +66,7 @@ POST http://localhost:8080/todos
 Content-Type: application/json
 Authorization: Bearer {{ALICE_TOKEN}}
 
-{"title": "Alice's todo - Buy groceries"}
+{"title": "Alice's todo - Learning fastify"}
 
 ### 5. Alice - Get all todos
 GET http://localhost:8080/todos
@@ -184,3 +184,7 @@ Authorization: Bearer {{ALICE_TOKEN}}
 
 ### 27. Health endpoint
 GET http://localhost:8080/health
+
+### 28 get user
+GET http://localhost:8080/me
+Authorization: Bearer {{ALICE_TOKEN}}

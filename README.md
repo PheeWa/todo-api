@@ -4,7 +4,7 @@ A RESTful Todo API built with Fastify and TypeScript, featuring owner-based auth
 
 ## Features
 
-- **Authentication & Authorization**: JWT-based authentication with owner-based access control
+- **Authentication & Authorization**: JWT-based authentication with UUID-based user identification and owner-based access control
 - **CRUD Operations**: Full todo management (Create, Read, Update, Delete)
 - **Type Safety**: Built with TypeScript and runtime schema validation
 - **Docker Support**: Containerized application ready for deployment
@@ -122,7 +122,8 @@ Content-Type: application/json
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiaWF0IjoxNzM..."
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiaWF0IjoxNzM...",
+  "username": "alice"
 }
 ```
 
@@ -130,6 +131,24 @@ Content-Type: application/json
 
 - User 1: `username: alice, password: admin123`
 - User 2: `username: bob, password: user123`
+
+#### Get Current User
+
+```bash
+GET /me
+Authorization: Bearer <token>
+```
+
+Returns information about the currently authenticated user.
+
+**Response:**
+
+```json
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440001",
+  "username": "alice"
+}
+```
 
 ### Todos
 

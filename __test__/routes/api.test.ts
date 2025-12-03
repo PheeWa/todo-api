@@ -6,6 +6,7 @@ import { authMiddleware } from "../../middleware/auth.js";
 import { errorHandler } from "../../middleware/errorHandler.js";
 import { authRoutes } from "../../routes/auth.js";
 import { todoRoutes } from "../../routes/todo.js";
+import { userRoutes } from "../../routes/user.js";
 
 describe("API Integration Tests", () => {
   let server: FastifyInstance;
@@ -32,6 +33,7 @@ describe("API Integration Tests", () => {
     await server.register(async function (protectedScope) {
       protectedScope.addHook("preHandler", authMiddleware);
       await protectedScope.register(todoRoutes);
+      await protectedScope.register(userRoutes);
     });
 
     // Get tokens to ready to use
@@ -112,6 +114,32 @@ describe("API Integration Tests", () => {
       const res = await server.inject({
         method: "GET",
         url: "/todos",
+      });
+
+      expect(res.statusCode).toBe(401);
+    });
+  });
+
+  describe("GET /me", () => {
+    it("should return current user info with valid token", async () => {
+      const res = await server.inject({
+        method: "GET",
+        url: "/me",
+        headers: {
+          authorization: `Bearer ${aliceToken}`,
+        },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = JSON.parse(res.body);
+      expect(body.userId).toBe("550e8400-e29b-41d4-a716-446655440001");
+      expect(body.username).toBe("alice");
+    });
+
+    it("should reject request without token", async () => {
+      const res = await server.inject({
+        method: "GET",
+        url: "/me",
       });
 
       expect(res.statusCode).toBe(401);

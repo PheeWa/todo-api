@@ -1,5 +1,5 @@
 import { type FastifyInstance } from "fastify";
-import { findUser, registerUser } from "../services/auth.js";
+import { authenticateUser, registerUser } from "../services/auth.js";
 import {
   LoginSchema,
   RegisterSchema,
@@ -15,14 +15,17 @@ export async function authRoutes(server: FastifyInstance) {
     },
     async (request, reply) => {
       const { username, password } = request.body;
-      const user = await findUser(username, password);
+      const user = await authenticateUser(username, password);
 
       if (!user) {
         return reply.unauthorized("Invalid credentials");
       }
 
-      const token = server.jwt.sign({ username });
-      return reply.send({ token });
+      const token = server.jwt.sign({
+        userId: user.userId,
+        username: user.username,
+      });
+      return reply.send({ token, username });
     }
   );
 
@@ -40,9 +43,12 @@ export async function authRoutes(server: FastifyInstance) {
       }
 
       // auto login after register
-      const token = server.jwt.sign({ username: newUser.username });
+      const token = server.jwt.sign({
+        userId: newUser.userId,
+        username: newUser.username,
+      });
 
-      return reply.code(201).send({ token });
+      return reply.code(201).send({ token, username });
     }
   );
 }

@@ -9,10 +9,11 @@ import { healthRoutes } from "./routes/health.js";
 import sensible from "@fastify/sensible";
 import jwt from "@fastify/jwt";
 import { config } from "./config/env.js";
+import { userRoutes } from "./routes/user.js";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: { username: string };
+    payload: User;
     user: User;
   }
 }
@@ -45,6 +46,7 @@ server.register(async function (protectedScope) {
   // middleware
   protectedScope.addHook("preHandler", authMiddleware);
   protectedScope.register(todoRoutes);
+  protectedScope.register(userRoutes);
 });
 
 server.listen({ port: config.port, host: config.host }, (err, address) => {
