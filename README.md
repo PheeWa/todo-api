@@ -5,9 +5,11 @@ A RESTful Todo API built with Fastify and TypeScript, featuring owner-based auth
 ## Features
 
 - **Authentication & Authorization**: JWT-based authentication with UUID-based user identification and owner-based access control
+- **PostgreSQL Database**: Persistent data storage with PostgreSQL
+- **Database Migrations**: Version-controlled schema migrations
 - **CRUD Operations**: Full todo management (Create, Read, Update, Delete)
 - **Type Safety**: Built with TypeScript and runtime schema validation
-- **Docker Support**: Containerized application ready for deployment
+- **Docker Support**: Containerized application with PostgreSQL ready for deployment
 - **CI/CD Pipeline**: Automated testing with GitHub Actions
 - **Pre-commit Hooks**: Automated testing before commits using Husky
 - **Error Handling**: Consistent error responses using @fastify/sensible
@@ -17,17 +19,20 @@ A RESTful Todo API built with Fastify and TypeScript, featuring owner-based auth
 - **Runtime**: Node.js 20
 - **Framework**: Fastify
 - **Language**: TypeScript
+- **Database**: PostgreSQL 16
+- **Database Client**: node-postgres (pg)
 - **Authentication**: JWT (@fastify/jwt)
+- **Password Hashing**: bcrypt
 - **Validation**: @sinclair/typebox
 - **Testing**: Jest
-- **Containerization**: Docker
+- **Containerization**: Docker & Docker Compose
 - **CI/CD**: GitHub Actions
 
 ## Prerequisites
 
 - Node.js 20 or higher
 - npm or yarn
-- Docker (optional)
+- Docker and Docker Compose (required for PostgreSQL)
 
 ## Installation
 
@@ -38,13 +43,52 @@ cd todo-api
 
 # Install dependencies
 npm install
+
+# Create .env file
+cp .env.example .env
+# Edit .env and add your JWT_SECRET and DATABASE_URL
 ```
+
+## Database Setup
+
+### 1. Start PostgreSQL
+
+```bash
+# Start PostgreSQL container
+docker-compose up -d postgres
+
+# Verify PostgreSQL is running
+docker-compose ps
+```
+
+### 2. Run Migrations
+
+```bash
+# Run database migrations to create tables
+npm run migrate
+```
+
+### 3. Seed Test Data (Optional)
+
+```bash
+# Seed database with test users (alice and bob)
+npm run seed
+```
+
+This will create two test users:
+
+- **alice** / admin123 (UUID: `550e8400-e29b-41d4-a716-446655440001`)
+- **bob** / user123 (UUID: `550e8400-e29b-41d4-a716-446655440002`)
 
 ## Running the Application
 
 ### Development Mode
 
 ```bash
+# Start PostgreSQL (if not already running)
+docker-compose up -d postgres
+
+# Start the application in development mode
 npm run dev
 ```
 
@@ -53,6 +97,9 @@ The server will start at `http://localhost:8080`
 ### Production Mode
 
 ```bash
+# Start PostgreSQL
+docker-compose up -d postgres
+
 # Build the project
 npm run build
 
@@ -60,17 +107,23 @@ npm run build
 npm start
 ```
 
-### Using Docker
+### Using Docker Compose (Full Stack)
 
 ```bash
-# Start the application
+# Start both PostgreSQL and the application
 docker-compose up
 
 # Start in detached mode (background)
 docker-compose up -d
 
+# View logs
+docker-compose logs -f
+
 # Stop the application
 docker-compose down
+
+# Stop and remove volumes (WARNING: deletes all data)
+docker-compose down -v
 ```
 
 ## API Endpoints
@@ -210,7 +263,8 @@ This API uses owner-based authorization:
 
 - Users can only view, update, and delete their own todos
 - Each todo is associated with the user who created it (via `userId`)
-- Cross-user access is prevented at the service layer through ownership checks
+- Cross-user access is prevented at both the database and service layer through ownership checks
+- Database queries include `WHERE user_id = $1` clauses to ensure data isolation
 
 ## Architecture
 
@@ -222,19 +276,36 @@ The application follows a layered architecture pattern:
 
 - **Entry Point** (`index.ts`): Initializes the Fastify server with configuration, JWT, and global error handling
 - **Routes Layer**: Handles HTTP requests (public auth routes, health checks, and protected todo routes)
-- **Service Layer**: Contains business logic for authentication and todo management
+- **Service Layer**: Contains business logic for authentication and todo management with PostgreSQL queries
 - **Schema Layer**: Defines request/response validation schemas using TypeBox
-- **Data Layer**: In-memory storage for users and todos
+- **Data Layer**: PostgreSQL database with connection pooling
+- **Migration Layer**: Version-controlled SQL schema migrations
 
 ## Testing
 
+The test suite includes unit tests and integration tests that connect to the PostgreSQL database.
+
 ```bash
-# Run tests
+# Ensure PostgreSQL is running
+docker-compose up -d postgres
+
+# Run database migrations
+npm run migrate
+
+# Seed test data
+npm run seed
+
+# Run all tests
 npm test
 
 # Run tests with coverage
 npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
 ```
+
+**Note**: Tests use the same database as development. The test suite uses the seeded test users (alice and bob) for integration testing.
 
 ## Development Workflow
 
@@ -248,44 +319,101 @@ This project uses Husky for git hooks:
 ```
 todo-api/
 ├── __test__/           # Test files
+│   ├── routes/         # Route integration tests
+│   └── services/       # Service unit tests
 ├── .github/            # GitHub Actions/workflows configuration
 ├── .husky/             # Git hook configuration (e.g., pre-commit hooks)
-├── config/             # Configuration files (environment variables, etc.)
+├── config/             # Configuration files
+│   ├── database.ts     # PostgreSQL connection pool
+│   └── env.ts          # Environment variable validation
 ├── dist/               # Compiled JavaScript output directory
 ├── doc/                # Documentation and diagrams
+├── migrations/         # Database schema migrations
+│   ├── 001_create_users_table.sql
+│   └── 002_create_todos_table.sql
 ├── middleware/         # Custom middleware (auth, error handling)
 ├── node_modules/       # Project dependencies
 ├── routes/             # Fastify API route handlers
-├── schemas/            # Request/response schemas
-├── services/           # Business logic and database interactions
+├── schemas/            # Request/response validation schemas
+├── scripts/            # Database scripts
+│   ├── migrate.ts      # Migration runner
+│   └── seed.ts         # Database seeder
+├── services/           # Business logic and PostgreSQL queries
 ├── types/              # TypeScript type definitions
 ├── .dockerignore       # Files to exclude when building the Docker image
-├── .env                # Environment variables (e.g., JWT_SECRET, Database connection)
+├── .env                # Environment variables (JWT_SECRET, DATABASE_URL)
 ├── .gitignore          # Files and directories to exclude from Git tracking
-├── docker-compose.yml  # Docker Compose configuration for multi-container setup
+├── docker-compose.yml  # Docker Compose configuration (app + PostgreSQL)
 ├── Dockerfile          # Docker configuration to build the application image
-├── index.ts            # Application entry point (where the Fastify server is initialized)
-├── jest.config.js      # Configuration file for Jest testing framework
+├── index.ts            # Application entry point
+├── jest.config.js      # Jest testing framework configuration
+├── jest.setup.js       # Jest setup file (loads environment variables)
 ├── package-lock.json   # Exact dependency versions locked by npm
 ├── package.json        # Project metadata, scripts, and dependency list
 ├── README.md           # Project documentation
-├── test.http           # File for running API tests/requests
+├── test.http           # HTTP request examples for manual testing
 └── tsconfig.json       # TypeScript compiler configuration
+```
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# JWT Secret (change this to a secure random string)
+JWT_SECRET=your-super-secret-jwt-key-change-this
+
+# Database Connection
+DATABASE_URL=postgresql://todouser:todopassword@localhost:5432/tododb
+
+# Server Configuration (optional)
+PORT=8080
+HOST=0.0.0.0
 ```
 
 ## Error Responses
 
 The API uses consistent error responses:
 
+- `400 Bad Request`: Invalid request body or parameters
 - `401 Unauthorized`: Missing or invalid authentication token
 - `404 Not Found`: Resource not found
+- `409 Conflict`: Duplicate resource (e.g., username already exists)
 - `500 Internal Server Error`: Unexpected server error
-- `409 Conflict`: Duplicate resource
 
-## Future Enhancements
+## Database Schema
 
-- Complete test coverage for all API endpoints ('POST /todos', 'GET /todos/:id', 'PATCH /todos/:id','DELETE /todos/:id' and 'POST /register')
-- Password reset functionality
-- Persistent data storage (database integration)
-- Request rate limiting
-- API documentation with Swagger/OpenAPI
+### Users Table
+
+```sql
+CREATE TABLE users (
+    user_id UUID PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Todos Table
+
+```sql
+CREATE TABLE todos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    is_completed BOOLEAN DEFAULT FALSE,
+    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server with auto-reload
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm start` - Start production server
+- `npm test` - Run test suite
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
+- `npm run migrate` - Run database migrations
+- `npm run seed` - Seed database with test users

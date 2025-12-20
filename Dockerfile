@@ -7,7 +7,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies for building)
-RUN npm ci
+# Skip all scripts (including Husky's prepare script)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -16,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-alpine 
 
 WORKDIR /app
 
@@ -24,7 +25,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ONLY production dependencies
-RUN npm ci --omit=dev
+# Skip all scripts (including Husky's prepare script)
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist

@@ -15,7 +15,7 @@ import {
 
 export async function todoRoutes(server: FastifyInstance) {
   server.get("/todos", async (request, reply) => {
-    const todos = getAllTodos(request.user.userId);
+    const todos = await getAllTodos(request.user.userId);
     return reply.send(todos);
   });
 
@@ -29,7 +29,7 @@ export async function todoRoutes(server: FastifyInstance) {
     async (request: FastifyRequest<{ Body: CreateTodoBody }>, reply) => {
       const { title } = request.body;
       const userId = request.user.userId;
-      const newTodo = addTodo(title, userId);
+      const newTodo = await addTodo(title, userId);
 
       return reply.code(201).send(newTodo);
     }
@@ -40,7 +40,7 @@ export async function todoRoutes(server: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
       const userId = request.user.userId;
-      const todo = getTodoById(id, userId);
+      const todo = await getTodoById(id, userId);
       if (!todo) {
         return reply.notFound("Todo not found");
       }
@@ -61,7 +61,7 @@ export async function todoRoutes(server: FastifyInstance) {
       const updates = request.body;
       const userId = request.user.userId;
 
-      const updatedTodo = updateTodo(id, userId, updates);
+      const updatedTodo = await updateTodo(id, userId, updates);
 
       if (!updatedTodo) {
         return reply.notFound("Todo not found");
@@ -76,7 +76,7 @@ export async function todoRoutes(server: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
       const userId = request.user.userId;
-      const deleted = deleteTodoById(id, userId);
+      const deleted = await deleteTodoById(id, userId);
 
       if (!deleted) {
         return reply.notFound("Todo not found");

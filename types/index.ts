@@ -8,4 +8,6 @@ export interface Todo {
   title: string;
   isCompleted: boolean;
   userId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
