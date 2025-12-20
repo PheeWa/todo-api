@@ -13,6 +13,21 @@ jobs:
     name: Test and Build
     runs-on: ubuntu-latest # Use Ubuntu Linux runner
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
@@ -29,10 +44,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Step 4: Run TypeScript build (type checking)
+      # Step 4: Run database migrations
+      - name: Run database migrations
+        run: npm run migrate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+
+      # Step 5: Seed test data
+      - name: Seed test database
+        run: npm run seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+
+      # Step 6: Run TypeScript build (type checking)
       - name: Type check
         run: npm run build
 
-      # Step 5: Run tests
+      # Step 7: Run tests
       - name: Run tests
         run: npm test
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
