@@ -49,12 +49,14 @@ jobs:
         run: npm run migrate
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          JWT_SECRET: test-jwt-secret-key
 
       # Step 5: Seed test data
       - name: Seed test database
         run: npm run seed
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          JWT_SECRET: test-jwt-secret-key
 
       # Step 6: Run TypeScript build (type checking)
       - name: Type check
@@ -65,3 +67,4 @@ jobs:
         run: npm test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          JWT_SECRET: test-jwt-secret-key
